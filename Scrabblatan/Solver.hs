@@ -1,0 +1,3 @@
+module Scrabblatan.Solver
+  (
+  ) where
