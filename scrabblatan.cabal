@@ -30,6 +30,7 @@ test-suite unit-tests
   hs-source-dirs:    test/unit
   main-is:           Spec.hs
   build-depends:     base,
+                     containers,
                      hspec,
                      scrabblatan,
                      vector
