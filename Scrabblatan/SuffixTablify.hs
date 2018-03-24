@@ -15,5 +15,4 @@ suffixes :: String -> [String]
 suffixes = init . tails
 
 printSuffixWordPair :: (String, String) -> IO ()
-printSuffixWordPair (s, w) = let spaceLength = 40 - length s
-                              in putStrLn $ s ++ replicate spaceLength ' ' ++ w
+printSuffixWordPair (s, w) = putStrLn (s ++ "\t" ++ w)
