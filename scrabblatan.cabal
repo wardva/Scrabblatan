@@ -13,7 +13,12 @@ library
   ghc-options: -Wall -Werror -threaded
 
   exposed-modules:   Scrabblatan.Scrabble,
+                     Scrabblatan.Scrabble.Board,
+                     Scrabblatan.Scrabble.Bonus,
                      Scrabblatan.Scrabble.Config,
+                     Scrabblatan.Scrabble.Move,
+                     Scrabblatan.Scrabble.Rack,
+                     Scrabblatan.Scrabble.Tile,
                      Scrabblatan.SuffixTable,
                      Scrabblatan.Solver,
                      Scrabblatan.Util

@@ -1,11 +1,10 @@
 module Scrabblatan.Scrabble.Config
   ( boardFromEnv
   , boardFromEnv'
-  , characterValuesFromEnv'
-  , characterValuesFromEnv
+  , tileValuesFromEnv'
+  , tileValuesFromEnv
   ) where
 
-import qualified Data.Map.Strict      as Map
 import           Data.Maybe           (fromMaybe)
 import           Data.Vector          ((//))
 import qualified Data.Vector          as Vector
@@ -19,13 +18,13 @@ type Environment = [(String, String)]
 defaultBoardSize :: Int
 defaultBoardSize = 15
 
-doubleCharPositionsKey, tripleCharPositionsKey, doubleWordPositionsKey, tripleWordPositionsKey, boardSizeKey, characterValuesKey :: String
+doubleCharPositionsKey, tripleCharPositionsKey, doubleWordPositionsKey, tripleWordPositionsKey, boardSizeKey, tileValuesKey :: String
 doubleCharPositionsKey = "SCRABBLATAN_DOUBLE_CHAR_POSITIONS"
 tripleCharPositionsKey = "SCRABBLATAN_TRIPLE_CHAR_POSITIONS"
 doubleWordPositionsKey = "SCRABBLATAN_DOUBLE_WORD_POSITIONS"
 tripleWordPositionsKey = "SCRABBLATAN_TRIPLE_WORD_POSITIONS"
 boardSizeKey           = "SCRABBLATAN_BOARD_SIZE"
-characterValuesKey     = "SCRABBLATAN_CHARACTER_VALUES"
+tileValuesKey          = "SCRABBLATAN_TILE_VALUES"
 
 defaultDoubleCharPositions, defaultTripleCharPositions, defaultDoubleWordPositions, defaultTripleWordPositions :: [ Position ]
 defaultDoubleCharPositions = [(0, 3), (2, 6), (3, 7), (6, 6)]
@@ -33,19 +32,19 @@ defaultTripleCharPositions = [(1, 5), (5, 5)]
 defaultDoubleWordPositions = [(1, 1), (2, 2), (3, 3), (4, 4), (7, 7)]
 defaultTripleWordPositions = [(0, 0), (0, 7)]
 
-defaultCharacterValues :: [(Character, Int)]
-defaultCharacterValues = [ (A, 1), (B, 3), (C, 5), (D, 2), (E, 1),  (F, 4)
-                         , (G, 3), (H, 4), (I, 1), (J, 4), (K, 3),  (L, 3)
-                         , (M, 3), (N, 1), (O, 1), (P, 3), (Q, 10), (S, 2)
-                         , (T, 2), (U, 4), (V, 4), (W, 5), (X, 8),  (Y, 8)
-                         , (Z, 4), (Blanco, 0)
-                         ]
+defaultTileValues :: [(Tile, Int)]
+defaultTileValues = [ (Regular A, 1), (Regular B, 3), (Regular C, 5), (Regular D, 2), (Regular E, 1),  (Regular F, 4)
+                    , (Regular G, 3), (Regular H, 4), (Regular I, 1), (Regular J, 4), (Regular K, 3),  (Regular L, 3)
+                    , (Regular M, 3), (Regular N, 1), (Regular O, 1), (Regular P, 3), (Regular Q, 10), (Regular S, 2)
+                    , (Regular T, 2), (Regular U, 4), (Regular V, 4), (Regular W, 5), (Regular X, 8),  (Regular Y, 8)
+                    , (Regular Z, 4), (Blanco, 0)
+                    ]
 
-characterValuesFromEnv' :: Environment -> CharacterValues
-characterValuesFromEnv' env = Map.fromList (readVar defaultCharacterValues characterValuesKey env)
+tileValuesFromEnv' :: Environment -> TileValues
+tileValuesFromEnv' = readVar defaultTileValues tileValuesKey
 
-characterValuesFromEnv :: IO CharacterValues
-characterValuesFromEnv = characterValuesFromEnv' <$> getEnvironment
+tileValuesFromEnv :: IO TileValues
+tileValuesFromEnv = tileValuesFromEnv' <$> getEnvironment
 
 boardFromEnv' :: Environment -> Board
 boardFromEnv' env =
