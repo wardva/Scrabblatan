@@ -1,6 +1,8 @@
 module Scrabblatan.Scrabble.Config
   ( boardFromEnv
   , boardFromEnv'
+  , defaultBoard
+  , defaultTileValues
   , tileValuesFromEnv'
   , tileValuesFromEnv
   ) where
@@ -63,6 +65,9 @@ boardFromEnv' env =
    in Board { boardSize = boardSize'
             , getBoard = cells // bonusses
             }
+
+defaultBoard :: Board
+defaultBoard = boardFromEnv' mempty
 
 boardFromEnv :: IO Board
 boardFromEnv = boardFromEnv' <$> getEnvironment
