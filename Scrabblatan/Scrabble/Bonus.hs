@@ -17,8 +17,8 @@ instance Show Multiplicator where
   show Triple = "3"
 
 instance Show Bonus where
-  show (CharacterBonus m) = ' ' : show m ++ "C "
-  show (WordBonus m)      = ' ' : show m ++ "W "
+  show (CharacterBonus m) = ' ' : show m ++ "xC "
+  show (WordBonus m)      = ' ' : show m ++ "xW "
 
 applyWordBonusses :: Int -> [Bonus] -> Int
 applyWordBonusses = foldl applyWordBonus

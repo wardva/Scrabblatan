@@ -3,7 +3,7 @@ module Scrabblatan.Scrabble.Move
   , score
   ) where
 
-import Data.Maybe (catMaybes)
+import           Data.Maybe                 (catMaybes)
 
 import           Scrabblatan.Scrabble.Board
 import           Scrabblatan.Scrabble.Bonus

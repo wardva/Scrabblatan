@@ -11,7 +11,7 @@ data Character = A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P |
   deriving (Eq, Read, Show)
 
 data Tile = Blanco | Regular { character :: Character }
-  deriving (Eq, Show)
+  deriving (Eq)
 
 type TileValues = [(Tile, Int)]
 
@@ -23,3 +23,7 @@ instance Read Tile where
   readsPrec _ ('B':'l':'a':'n':'c':'o':s) = return (Blanco, s)
   readsPrec n (c:cs)                      = first Regular <$> readsPrec n (toUpper c : cs)
   readsPrec _ _                           = []
+
+instance Show Tile where
+  show Blanco      = " |_| "
+  show (Regular c) = " |" ++ show c ++ "| "
