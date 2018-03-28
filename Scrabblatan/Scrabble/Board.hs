@@ -9,6 +9,7 @@ module Scrabblatan.Scrabble.Board
   , bonusCellUpdates
   , emptyCell
   , getBonus
+  , hasNeighbor
   , posToIndex
   , usablePositions
   ) where
@@ -65,10 +66,12 @@ usablePositions board = filter (usablePosition board) (boardPositions board)
 
 
 usablePosition :: Board -> Position -> Bool
-usablePosition board pos@(r,c) = let isUnused = isNothing $ getTile board pos
-                                     neighbors = filter (valid board) [ (r+1,c), (r-1,c), (r,c+1), (r,c-1) ]
-                                     hasNeighbor = or $ isJust . getTile board <$> neighbors
-                                  in isUnused && hasNeighbor
+usablePosition board pos = isNothing (getTile board pos) && hasNeighbor board pos
+
+hasNeighbor :: Board -> Position -> Bool
+hasNeighbor board (r,c) = let neighbors = filter (valid board) [ (r+1,c), (r-1,c), (r,c+1), (r,c-1) ]
+                           in or $ isJust . getTile board <$> neighbors
+
 
 --Helper functions
 

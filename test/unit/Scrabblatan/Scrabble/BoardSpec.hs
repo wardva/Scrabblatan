@@ -3,6 +3,7 @@
 module Scrabblatan.Scrabble.BoardSpec where
 
 import           Test.Hspec
+import qualified Data.Vector as V
 
 import           Scrabblatan.Scrabble
 import           Scrabblatan.Scrabble.Config
@@ -48,6 +49,33 @@ spec = do
 
       let result = 30
       score board values move `shouldBe` result
+
+  describe "hasNeighbor" $ do
+    let empty = Cell { bonus = Nothing, tile = Nothing }
+    let chr c = Cell { bonus = Nothing, tile = Just (Regular c) }
+
+    let tiles = [ empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, chr R, empty, chr B, empty, empty, empty
+                , chr S, chr N, chr E, chr D, chr E, chr N, empty, empty
+                , empty, empty, chr D, empty, chr E, empty, empty, empty
+                , empty, empty, chr E, chr N, chr K, chr E, chr L, chr E
+                , empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty
+                ]
+
+    let board  = Board { boardSize = 8, getBoard = V.fromList tiles }
+
+    it "returns False when no occupied positions next to position" $ do
+      hasNeighbor board (0, 0) `shouldBe` False
+      hasNeighbor board (7, 7) `shouldBe` False
+      hasNeighbor board (6, 2) `shouldBe` False
+      hasNeighbor board (5, 1) `shouldBe` False
+
+    it "returns True when occupied positions next to position" $ do
+      hasNeighbor board (1, 0) `shouldBe` True
+      hasNeighbor board (2, 0) `shouldBe` True
+      hasNeighbor board (3, 3) `shouldBe` True
 
   describe "usablePostions" $
     it "returns all usable positions (empty cells with occupied neighbors)" $ do
