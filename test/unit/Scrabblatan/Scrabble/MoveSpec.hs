@@ -49,45 +49,61 @@ spec = do
       let result = 30
       score board values move `shouldBe` result
 
+  describe "buildMove" $ do
+    it "correctly build a horizontal move" $ do
+      let tiles = [Regular H, Regular E, Regular L, Regular L, Regular O]
+      let direction = Horizontal
+      let startPosition = (2, 3)
+
+      let expected = [ ((2, 3), Regular H)
+                     , ((2, 4), Regular E)
+                     , ((2, 5), Regular L)
+                     , ((2, 6), Regular L)
+                     , ((2, 7), Regular O)
+                     ]
+
+      buildMove tiles direction startPosition `shouldBe` expected
+
+    it "correctly build a vertical move" $ do
+      let tiles = [Regular H, Regular E, Regular L, Regular L, Regular O]
+      let direction = Vertical
+      let startPosition = (2, 3)
+
+      let expected = [ ((2, 3), Regular H)
+                     , ((3, 3), Regular E)
+                     , ((4, 3), Regular L)
+                     , ((5, 3), Regular L)
+                     , ((6, 3), Regular O)
+                     ]
+
+      buildMove tiles direction startPosition `shouldBe` expected
+
   describe "applyMove" $
     it "correctly applies two moves in the opposite direction" $ do
-      let board = defaultBoard
-      let move1 = [ ((7, 6),  Regular H)
-                  , ((7, 7),  Regular E)
-                  , ((7, 8),  Regular L)
-                  , ((7, 9),  Regular L)
-                  , ((7, 10), Regular O)
-                  ]
+      let move1 = buildMove [Regular H, Regular E, Regular L, Regular L, Regular O] Horizontal (7, 6)
+      let move2 = buildMove [Regular W, Regular O, Regular R, Regular L, Regular D] Vertical (6, 10)
 
-      let move2 = [ ((6, 10),  Regular W)
-                  , ((7, 10),  Regular O)
-                  , ((8, 10),  Regular R)
-                  , ((9, 10),  Regular L)
-                  , ((10, 10), Regular D)
-                  ]
-
-      let firstApplied  = applyMove board move1
+      let firstApplied  = applyMove defaultBoard move1
       let secondApplied = applyMove firstApplied move2
 
       let empty = Nothing
       let chr c = Just (Regular c)
 
- --                    1      2      3      4      5      6      7      8      9      10     11     12     13     14     15
-{-A-} let tiles = [ empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
-{-B-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
-{-C-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
-{-D-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
-{-E-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
-{-F-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
-{-G-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr W, empty, empty, empty, empty
-{-H-}             , empty, empty, empty, empty, empty, empty, chr H, chr E, chr L, chr L, chr O, empty, empty, empty, empty
-{-I-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr R, empty, empty, empty, empty
-{-J-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr L, empty, empty, empty, empty
-{-K-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr D, empty, empty, empty, empty
-{-L-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
-{-M-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
-{-N-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
-{-O-}             , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+      let tiles = [ empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr W, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, chr H, chr E, chr L, chr L, chr O, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr R, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr L, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr D, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                  , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
                   ]
 
       let expectedBoard  = applyTiles defaultBoard tiles

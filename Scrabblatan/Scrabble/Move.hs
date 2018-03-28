@@ -1,8 +1,10 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Scrabblatan.Scrabble.Move
-  ( Move
+  ( Direction (..)
+  , Move
   , applyMove
+  , buildMove
   , score
   ) where
 
@@ -14,7 +16,17 @@ import           Scrabblatan.Scrabble.Board
 import           Scrabblatan.Scrabble.Bonus
 import           Scrabblatan.Scrabble.Tile
 
+
+data Direction = Horizontal | Vertical
+  deriving (Show, Eq)
+
 type Move = [(Position, Tile)]
+
+buildMove :: [Tile] -> Direction -> Position -> Move
+buildMove tiles direction (r, c) = zipWith (curry . first $ getPos) [0..] tiles
+  where getPos i = case direction of
+                     Horizontal -> (r, c + i)
+                     Vertical   -> (r + i, c)
 
 score :: Board -> TileValues -> Move -> Int
 score board values move = let tileScores = fmap (uncurry tileScore) move
