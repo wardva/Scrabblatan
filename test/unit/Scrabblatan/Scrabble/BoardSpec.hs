@@ -2,7 +2,6 @@
 
 module Scrabblatan.Scrabble.BoardSpec where
 
-import           Control.Exception           (evaluate)
 import           Test.Hspec
 
 import           Scrabblatan.Scrabble

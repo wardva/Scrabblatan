@@ -9,6 +9,7 @@ module Scrabblatan.Scrabble.Board
   , bonusCellUpdates
   , emptyCell
   , getBonus
+  , posToIndex
   , usablePositions
   ) where
 
@@ -36,7 +37,8 @@ data Board = Board { boardSize :: Int
   deriving (Eq)
 
 applyTiles :: Board -> [Maybe Tile] -> Board
-applyTiles board tiles = board { getBoard = V.zipWith (\c t -> c { tile = t }) (getBoard board) (V.fromList tiles) }
+applyTiles board tiles = let applied = V.zipWith (\c t -> c { tile = t }) (getBoard board) (V.fromList tiles)
+                          in board { getBoard = applied }
 
 emptyCell :: Cell
 emptyCell = Cell { bonus = Nothing
