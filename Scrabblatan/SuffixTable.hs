@@ -10,6 +10,7 @@ module Scrabblatan.SuffixTable
   , sort
   , suffixEntries
   ) where
+
 import           Data.Text                    (isPrefixOf)
 import qualified Data.Text                    as Text
 import qualified Data.Text.IO                 as TextIO
@@ -25,7 +26,7 @@ fromFile :: FilePath -> IO SuffixTable
 fromFile filePath = do
   file <- TextIO.readFile filePath
   let lines' = Text.lines file
-  let pairs  = (fmap Text.stripStart . Text.breakOn "\t") <$> lines'
+  let pairs  = fmap Text.stripStart . Text.breakOn "\t" <$> lines'
   let table  = V.fromList pairs
   return table
 

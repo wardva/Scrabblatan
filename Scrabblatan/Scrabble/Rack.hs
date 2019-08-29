@@ -1,14 +1,13 @@
 module Scrabblatan.Scrabble.Rack
   ( Rack
-  , available
-  , timesAvailable
+  , remove
   ) where
-import Scrabblatan.Scrabble.Tile
+
+import qualified Data.List                 as List
+
+import           Scrabblatan.Scrabble.Tile
 
 type Rack = [ Tile ]
 
-available :: Rack -> Character -> Bool
-available rack c = any (matches c) rack
-
-timesAvailable :: Rack -> Character -> Int
-timesAvailable rack c = length $ filter (matches c) rack
+remove :: Rack -> Tile -> Rack
+remove rack c = List.delete c rack

@@ -66,6 +66,12 @@ boardFromEnv' env =
             , getBoard = cells // bonusses
             }
 
+  where bonusCellUpdates size ps b =
+          fmap (\pos -> let idx = posToIndex size pos
+                            cell = emptyCell { bonus = Just b }
+                         in (idx, cell)
+               ) ps
+
 defaultBoard :: Board
 defaultBoard = boardFromEnv' mempty
 

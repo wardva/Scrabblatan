@@ -12,19 +12,23 @@ cabal-version:       >=1.10
 library
   ghc-options: -Wall -Werror -threaded
 
-  exposed-modules:   Scrabblatan.Scrabble,
+  exposed-modules:   Scrabblatan.Dictionary,
+                     Scrabblatan.Scrabble,
                      Scrabblatan.Scrabble.Board,
                      Scrabblatan.Scrabble.Bonus,
                      Scrabblatan.Scrabble.Config,
-                     Scrabblatan.Scrabble.Move,
+                     Scrabblatan.Scrabble.Core,
                      Scrabblatan.Scrabble.Rack,
                      Scrabblatan.Scrabble.Tile,
+                     Scrabblatan.SuffixMap,
                      Scrabblatan.SuffixTable,
                      Scrabblatan.Solver,
                      Scrabblatan.Util
   build-depends:     array,
                      base,
                      containers,
+                     hashable,
+                     unordered-containers,
                      text,
                      vector,
                      vector-algorithms
@@ -38,5 +42,6 @@ test-suite unit-tests
                      containers,
                      hspec,
                      scrabblatan,
+                     time,
                      vector
   default-language:  Haskell2010

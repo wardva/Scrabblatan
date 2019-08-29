@@ -4,7 +4,8 @@
 *.o-boot
 .cabal-sandbox
 .stack-work
-dist/
 TODO
 dictionaries/*-scrabble
 dictionaries/*-suffixes
+dist/
+games/

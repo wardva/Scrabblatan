@@ -13,43 +13,6 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "score" $ do
-    let board = defaultBoard
-    let values = defaultTileValues
-
-    it "correctly calculates the score (2 x char and two times 3 x word bonus)" $ do
-      let move = [ ((14, 0), Regular Q)
-                 , ((14, 1), Regular U)
-                 , ((14, 2), Regular O)
-                 , ((14, 3), Regular T)
-                 , ((14, 4), Regular I)
-                 , ((14, 5), Regular E)
-                 , ((14, 6), Regular N)
-                 , ((14, 7), Blanco)
-                 ]
-
-      let result = 198
-      score board values move `shouldBe` result
-
-    it "correctly calculates the score of two blanco tiles" $ do
-      let move = [ ((7, 7), Blanco)
-                 , ((7, 8), Blanco)
-                 ]
-
-      let result = 0
-      score board values move `shouldBe` result
-
-    it "correctly calculates the score (3 x char and 2 x word bonus)" $ do
-      let move = [ ((1, 13), Regular W)
-                 , ((2, 13), Regular O)
-                 , ((3, 13), Regular E)
-                 , ((4, 13), Regular S)
-                 , ((5, 13), Regular T)
-                 ]
-
-      let result = 30
-      score board values move `shouldBe` result
-
   describe "hasNeighbor" $ do
     let empty = Cell { bonus = Nothing, tile = Nothing }
     let chr c = Cell { bonus = Nothing, tile = Just (Regular c) }
@@ -113,3 +76,68 @@ spec = do
       length usable `shouldBe` 29
       usable `shouldBe` expected
 
+  describe "getTileRow" $ do
+    let empty = Nothing
+    let chr c = Just (Regular c)
+
+    let tiles = [ empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, chr R, empty, chr B, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, chr S, chr N, chr E, chr D, chr E, chr N, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, chr D, empty, chr E, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, chr E, chr N, chr K, chr E, chr L, chr E, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr N, chr A, chr F, chr T
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr O
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr E
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr T
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr S
+                ]
+
+    let board = applyTiles defaultBoard tiles
+
+    it "returns the new TileRow after putting a Tile in vertical direction" $ do
+      let tiles = getTileRow board (8, 7) Horizontal (Regular O)
+
+      tiles `shouldBe` [Regular D, Regular O, Regular E]
+
+    it "returns the new TileRow after putting a Tile in vertical direction" $ do
+      let tiles = getTileRow board (8, 7) Vertical (Regular O)
+
+      tiles `shouldBe` [Regular D, Regular O, Regular N]
+
+    it "detects Board borders" $ do
+      let tiles = getTileRow board (14, 13) Horizontal (Regular O)
+
+      tiles `shouldBe` [Regular O, Regular S]
+
+  describe "getNextFree" $ do
+    let empty = Nothing
+    let chr c = Just (Regular c)
+
+    let tiles = [ empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, chr R, empty, chr B, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, chr S, chr N, chr E, chr D, chr E, chr N, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, chr D, empty, chr E, empty, empty, empty, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, chr E, chr N, chr K, chr E, chr L, chr E, empty, empty, empty
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr N, chr A, chr F, chr T
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr O
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr E
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr T
+                , empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, chr S
+                ]
+
+    let board = applyTiles defaultBoard tiles
+
+    it "returns the next free horizontal tiles" $ do
+      let nextFree = getNextFree board (7, 6) Horizontal
+
+      nextFree `shouldBe` [(7, 3), (7, 10)]
