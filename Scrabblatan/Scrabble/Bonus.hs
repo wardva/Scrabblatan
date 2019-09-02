@@ -6,19 +6,11 @@ module Scrabblatan.Scrabble.Bonus
   ) where
 
 data Multiplicator = Double | Triple
-  deriving (Eq)
+  deriving (Eq, Show)
 
 data Bonus = CharacterBonus { multiplicator :: Multiplicator }
            | WordBonus { multiplicator :: Multiplicator }
-  deriving (Eq)
-
-instance Show Multiplicator where
-  show Double = "2"
-  show Triple = "3"
-
-instance Show Bonus where
-  show (CharacterBonus m) = ' ' : show m ++ "xC "
-  show (WordBonus m)      = ' ' : show m ++ "xW "
+  deriving (Eq, Show)
 
 applyWordBonusses :: Int -> [Bonus] -> Int
 applyWordBonusses = foldl applyWordBonus

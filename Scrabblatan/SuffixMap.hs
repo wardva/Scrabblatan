@@ -4,28 +4,24 @@ module Scrabblatan.SuffixMap
   ( SuffixMap
   , contains
   , fromFile
-  , findContaining
   ) where
 
-import qualified Data.HashMap.Lazy         as Map
-import qualified Data.Text                 as Text
-import qualified Data.Text.IO              as TextIO
+import           Scrabblatan.Scrabble
 
-import           Scrabblatan.Scrabble.Core
+import qualified Data.Text                    as Text
+import qualified Data.Text.IO                 as TextIO
+import qualified Data.HashMap.Strict          as Map
 
 type SuffixMap = Map.HashMap ScrabbleWord [ScrabbleWord]
 
+-- File should be sorted
 fromFile :: FilePath -> IO SuffixMap
 fromFile filePath = do
   file <- TextIO.readFile filePath
   let lines' = Text.lines file
-  let pairs  = (\(k,v) -> (read $ Text.unpack k, read . Text.unpack <$> v)) . fmap ((:[]) . Text.stripStart) . Text.breakOn "\t" <$> lines'
-  let table  = Map.fromListWith (++) pairs :: SuffixMap
+  let pairs = (\(k,v) -> (read $ Text.unpack k, [read . Text.unpack $ Text.stripStart v])) . Text.breakOn "\t" <$> lines'
 
-  return table
+  return $ Map.fromListWith (++) pairs
 
 contains :: ScrabbleWord -> SuffixMap -> Bool
 contains = Map.member
-
-findContaining :: ScrabbleWord -> SuffixMap -> Maybe [ScrabbleWord]
-findContaining = Map.lookup

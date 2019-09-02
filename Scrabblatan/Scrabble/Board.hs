@@ -1,16 +1,17 @@
+{-# LANGUAGE DeriveAnyClass  #-}
+{-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Scrabblatan.Scrabble.Board
   ( Board (..)
   , Bonus (..)
-  , Cell (..)
   , Direction (..)
   , Position
-  , applyTiles
-  , applyTile
+  , fillBoard
+  , applyCharacter
+  , readPBoard
   , directions
-  , emptyCell
-  , getTileRow
+  , getRow
   , hasNeighbor
   , posToIndex
   , swapDirection
@@ -18,31 +19,29 @@ module Scrabblatan.Scrabble.Board
   , getNextFree
   ) where
 
-import           Data.Char                  (chr, ord)
-import           Data.List                  (intercalate)
-import           Data.Maybe                 (isJust, isNothing, maybeToList)
-import           Data.Vector                ((!), (//))
-import qualified Data.Vector                as V
+import           Data.Functor                 (($>))
+import           Data.Hashable                (Hashable)
+import qualified Data.HashMap.Lazy            as Map
+import           Data.Maybe                   (isJust, isNothing, maybeToList)
+import           Data.Vector                  ((!), (//))
+import qualified Data.Vector                  as V
+import           GHC.Generics                 (Generic)
+import           Text.ParserCombinators.ReadP
+
 
 import           Scrabblatan.Scrabble.Bonus
-import           Scrabblatan.Scrabble.Tile
+import           Scrabblatan.Scrabble.ScrabbleWord
 
 -- Positioning
 
 type BoardSize = Int
 type Position  = (Int, Int)
-
-rowId :: Int -> String
-rowId i = [chr (ord 'A' + i)]
-
-colId :: Int -> String
-colId i | i < 9 = "  " ++ show (i+1) ++ "  "
-        | otherwise = " " ++ show (i+1) ++ "  "
+type Bonuses   = Map.HashMap Position Bonus
 
 -- Directions
 
 data Direction = Horizontal | Vertical
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic, Hashable)
 
 directions :: [Direction]
 directions = [Horizontal, Vertical]
@@ -51,55 +50,42 @@ swapDirection :: Direction -> Direction
 swapDirection Horizontal = Vertical
 swapDirection Vertical   = Horizontal
 
--- Cell
-
-data Cell = Cell { bonus :: Maybe Bonus
-                 , tile  :: Maybe Tile
-                 }
-  deriving (Eq, Show)
-
-emptyCell :: Cell
-emptyCell = Cell { bonus = Nothing
-                 , tile  = Nothing
-                 }
-
 -- Board
 
-data Board = Board { boardSize :: Int
-                   , getBoard  :: V.Vector Cell
+data Board = Board { boardSize  :: !BoardSize
+                   , getBoard   :: !(V.Vector (Maybe Character))
+                   , getBonuses :: !Bonuses
                    }
   deriving (Eq)
 
-applyTiles :: Board -> [Maybe Tile] -> Board
-applyTiles board tiles = let applied = V.zipWith (\c t -> c { tile = t }) (getBoard board) (V.fromList tiles)
-                          in board { getBoard = applied }
+fillBoard :: Board -> [Maybe Character] -> Board
+fillBoard board tiles = board { getBoard = V.fromList tiles }
 
-applyTile :: Board -> Position -> Tile -> Board
-applyTile board@Board {..} pos tile = let idx = posToIndex boardSize pos
-                                          cell = (getBoard ! idx) { tile = Just tile }
-                                       in board { getBoard = getBoard // [(idx, cell)] }
+applyCharacter:: Board -> Position -> Character -> Board
+applyCharacter board@Board {..} pos tile = let idx = posToIndex boardSize pos
+                                       in board { getBoard = getBoard // [(idx, Just tile)] }
 
-getTile :: Board -> Position -> Maybe Tile
-getTile board pos = tile $ getBoard board ! posToIndex (boardSize board) pos
+getCharacter :: Board -> Position -> Maybe Character
+getCharacter board pos = getBoard board ! posToIndex (boardSize board) pos
 
 usablePositions :: Board -> [Position]
 usablePositions board = filter usablePosition (boardPositions board)
   where usablePosition pos =
-          isNothing (getTile board pos) && hasNeighbor board pos
+          isNothing (getCharacter board pos) && hasNeighbor board pos
 
 hasNeighbor :: Board -> Position -> Bool
 hasNeighbor board (r,c) = let neighbors = filter (valid board) [ (r+1,c), (r-1,c), (r,c+1), (r,c-1) ]
-                           in or $ isJust . getTile board <$> neighbors
+                           in or $ isJust . getCharacter board <$> neighbors
 
-getTileRow :: Board -> Position -> Direction -> Tile -> [Tile]
-getTileRow board pos dir tile =
+getRow :: Board -> Position -> Direction -> Character -> ScrabbleWord
+getRow board pos dir tile =
   let (back, forward) = movements dir
       tilesBack = getDirection (back board) (back board pos)
       tilesForward = getDirection (forward board) (forward board pos)
-   in reverse tilesBack ++ tile : tilesForward
+   in ScrabbleWord (reverse tilesBack ++ tile : tilesForward)
 
   where getDirection next p =
-          case p >>= getTile board of
+          case p >>= getCharacter board of
             Just t  -> t : getDirection next (p >>= next)
             Nothing -> []
 
@@ -110,7 +96,7 @@ getNextFree board pos dir =
 
   where getDirection next p = do
           p' <- maybeToList p
-          case getTile board p' of
+          case getCharacter board p' of
             Just _  -> getDirection next (next p')
             Nothing -> return p'
 
@@ -149,18 +135,33 @@ below b (r, c)   = validate (r+1, c) b
 
 movements :: Direction -> (Movement, Movement)
 movements Horizontal = (leftOf, rightOf)
-movements Vertical = (above, below)
+movements Vertical   = (above, below)
 
---Show instances
+--Show and Read instances
 
 instance Show Board where
-  show Board {..} = colIds ++ border ++ raster
-    where indices = [0 .. boardSize - 1]
-          border = "-----+"  ++ intercalate "+" (replicate boardSize "-----") ++ "+\n"
-          colIds = "\n     |" ++ intercalate "|" (colId <$> indices) ++ "|\n"
-          showCell r c = let begin = if c == 0 then "  " ++ rowId r ++ "  |" else ""
-                             end   = if c == boardSize - 1 then "|\n" ++ border else "|"
-                             cell = getBoard ! posToIndex boardSize (r,c)
-                             content = maybe (maybe "     " show (bonus cell)) show (tile cell)
-                          in begin ++ content ++ end
-          raster = concat [showCell r c | r <- indices, c <- indices]
+  show Board {..} =
+    V.ifoldr (\i e acc ->
+      let c = case e of
+                Just c'  -> characterToChar c'
+                Nothing -> '.'
+       in c : (if (i + 1) `mod` 15 == 0 then '\n' else ' ') : acc
+    ) mempty getBoard
+
+readPBoard :: ReadP Board
+readPBoard = do
+  firstLine <- skipSpaces *> readLine
+  let n = length firstLine
+  otherLines <- count (n - 1) readLine
+  let characters = firstLine ++ concat otherLines
+
+  return Board { boardSize = n
+               , getBoard = V.fromList characters
+               , getBonuses = mempty
+               }
+
+  where readLine = manyTill readCharacter (char '\n') <* skipSpaces
+        readCharacter = ((char '.' $> Nothing) +++ (Just <$> readPCharacter)) <* many (char ' ')
+
+instance Read Board where
+  readsPrec _ = readP_to_S readPBoard

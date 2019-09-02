@@ -11,6 +11,8 @@ module Scrabblatan.SuffixTable
   , suffixEntries
   ) where
 
+import Scrabblatan.Scrabble
+
 import           Data.Text                    (isPrefixOf)
 import qualified Data.Text                    as Text
 import qualified Data.Text.IO                 as TextIO
@@ -27,7 +29,8 @@ fromFile filePath = do
   file <- TextIO.readFile filePath
   let lines' = Text.lines file
   let pairs  = fmap Text.stripStart . Text.breakOn "\t" <$> lines'
-  let table  = V.fromList pairs
+  let mapped = fmap (\(k,v) -> (read (Text.unpack k), read (Text.unpack v))) pairs
+  let table  = V.fromList mapped
   return table
 
 generate :: [Text.Text] -> SuffixTable
@@ -38,8 +41,8 @@ getAndSplit v i = let (left, right) = V.tail <$> V.splitAt i v
                       item = v ! i
                    in (left, item, right)
 
-contains :: Text.Text -> SuffixTable -> Bool
-contains needle table = not . null $ findContaining needle table
+contains :: ScrabbleWord -> SuffixTable -> Bool
+contains needle table = not . null $ findContaining (Text.pack $ show needle) table
 
 findContaining :: Text.Text -> SuffixTable -> [Text.Text]
 findContaining needle table

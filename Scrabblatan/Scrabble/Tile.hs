@@ -1,38 +1,41 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
 
 module Scrabblatan.Scrabble.Tile
   ( Character (..)
   , ScrabbleWord (..)
   , Tile (..)
   , TileValues
-  , matches
-  , expandBlanco
+  , expandTile
+  , readPTile
+  , tileToChar
   ) where
 
-import           Control.Arrow    (first)
-import           Data.Char        (toUpper)
+import           Data.Functor                 (($>))
+import           Data.Hashable                (Hashable)
+import           GHC.Generics                 (Generic)
+import           Text.ParserCombinators.ReadP
 
-import           Scrabblatan.Scrabble.Core
+import           Scrabblatan.Scrabble.ScrabbleWord
 
-data Tile = Blanco | Regular { character :: Character }
-  deriving (Eq)
+data Tile = Blanco | Regular { character :: !Character }
+  deriving (Eq, Generic, Hashable)
 
 type TileValues = [(Tile, Int)]
 
-expandBlanco :: [Tile] -> [ScrabbleWord]
-expandBlanco tiles = ScrabbleWord <$> traverse (\case Blanco       -> [A .. Z]
-                                                      (Regular c)  -> [c]
-                                               ) tiles
+expandTile :: Tile -> [Character]
+expandTile (Regular c) = [c]
+expandTile Blanco = allCharacters
 
-matches :: Character -> Tile -> Bool
-matches c1 (Regular c2) = c1 == c2
-matches _ Blanco        = True
+readPTile :: ReadP Tile
+readPTile = (char '_' $> Blanco) +++ (Regular <$> readPCharacter)
 
 instance Read Tile where
-  readsPrec _ ('B':'l':'a':'n':'c':'o':s) = return (Blanco, s)
-  readsPrec n (c:cs)                      = first Regular <$> readsPrec n (toUpper c : cs)
-  readsPrec _ _                           = []
+  readsPrec _ = readP_to_S readPTile
 
 instance Show Tile where
-  show Blanco      = " |_| "
-  show (Regular c) = " |" ++ show c ++ "| "
+  show t = [tileToChar t]
+
+tileToChar :: Tile -> Char
+tileToChar Blanco      = '_'
+tileToChar (Regular c) = characterToChar c

@@ -17,7 +17,7 @@ library
                      Scrabblatan.Scrabble.Board,
                      Scrabblatan.Scrabble.Bonus,
                      Scrabblatan.Scrabble.Config,
-                     Scrabblatan.Scrabble.Core,
+                     Scrabblatan.Scrabble.ScrabbleWord,
                      Scrabblatan.Scrabble.Rack,
                      Scrabblatan.Scrabble.Tile,
                      Scrabblatan.SuffixMap,
@@ -29,15 +29,32 @@ library
                      containers,
                      hashable,
                      unordered-containers,
+                     mtl,
                      text,
                      vector,
                      vector-algorithms
   default-language:  Haskell2010
 
+executable scrabblatan-cli
+  main-is: Main.hs
+  hs-source-dirs: scrabblatan-cli
+  default-language: Haskell2010
+  ghc-options: -Wall -Werror -threaded -rtsopts
+  build-depends:     base,
+                     optparse-applicative,
+
+                     scrabblatan
+
 test-suite unit-tests
   type:              exitcode-stdio-1.0
   hs-source-dirs:    test/unit
   main-is:           Spec.hs
+  other-modules:     Scrabblatan.Scrabble.BoardSpec,
+                     Scrabblatan.Scrabble.ConfigSpec,
+                     Scrabblatan.Scrabble.RackSpec,
+                     Scrabblatan.Scrabble.TileSpec,
+                     Scrabblatan.SuffixMapSpec
+                     Scrabblatan.SuffixTableSpec
   build-depends:     base,
                      containers,
                      hspec,

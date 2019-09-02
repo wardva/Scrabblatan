@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 module Scrabblatan.Scrabble.Config
   ( boardFromEnv
   , boardFromEnv'
@@ -7,8 +9,8 @@ module Scrabblatan.Scrabble.Config
   , tileValuesFromEnv
   ) where
 
+import qualified Data.HashMap.Lazy    as Map
 import           Data.Maybe           (fromMaybe)
-import           Data.Vector          ((//))
 import qualified Data.Vector          as Vector
 import           System.Environment   (getEnvironment)
 
@@ -52,25 +54,15 @@ boardFromEnv' :: Environment -> Board
 boardFromEnv' env =
   let boardSize'          = readVar defaultBoardSize boardSizeKey env
       mirror'             = mirror boardSize'
-      doubleCharPositions = mirror' $ readVar defaultDoubleCharPositions doubleCharPositionsKey env
-      tripleCharPositions = mirror' $ readVar defaultTripleCharPositions tripleCharPositionsKey env
-      doubleWordPositions = mirror' $ readVar defaultDoubleWordPositions doubleWordPositionsKey env
-      tripleWordPositions = mirror' $ readVar defaultTripleWordPositions tripleWordPositionsKey env
-      cells               = Vector.generate (boardSize' * boardSize') $ const emptyCell
-      bonusses = [ (doubleCharPositions, CharacterBonus Double)
-                 , (tripleCharPositions, CharacterBonus Triple)
-                 , (doubleWordPositions, WordBonus Double)
-                 , (tripleWordPositions, WordBonus Triple)
-                 ] >>= uncurry (bonusCellUpdates boardSize')
-   in Board { boardSize = boardSize'
-            , getBoard = cells // bonusses
-            }
+      bonuses = ((,CharacterBonus Double) <$> mirror' (readVar defaultDoubleCharPositions doubleCharPositionsKey env))
+             ++ ((,CharacterBonus Triple) <$> mirror' (readVar defaultTripleCharPositions tripleCharPositionsKey env))
+             ++ ((,WordBonus Double)      <$> mirror' (readVar defaultDoubleWordPositions doubleWordPositionsKey env))
+             ++ ((,WordBonus Triple)      <$> mirror' (readVar defaultTripleWordPositions tripleWordPositionsKey env))
 
-  where bonusCellUpdates size ps b =
-          fmap (\pos -> let idx = posToIndex size pos
-                            cell = emptyCell { bonus = Just b }
-                         in (idx, cell)
-               ) ps
+   in Board { boardSize = boardSize'
+            , getBoard = Vector.generate (boardSize' * boardSize') (const Nothing)
+            , getBonuses = Map.fromList bonuses
+            }
 
 defaultBoard :: Board
 defaultBoard = boardFromEnv' mempty
@@ -83,7 +75,7 @@ readVar def key env = let val = lookup key env
                           err = "Invalid Scrabblatan configuration parameter: " ++ key
                        in maybe def (fromMaybe (error err) . maybeRead) val
 
-mirror :: Int -> [ Position ] -> [ Position ]
+mirror :: Int -> [Position] -> [Position]
 mirror n positions = positions >>= diag >>= vert >>= hor
   where h = (n `div` 2) + 1
         diag p@(r, c) | r == c = return p

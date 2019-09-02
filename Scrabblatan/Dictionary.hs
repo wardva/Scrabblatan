@@ -8,7 +8,7 @@ import qualified Data.HashSet              as Set
 import qualified Data.Text                 as Text
 import qualified Data.Text.IO              as TextIO
 
-import           Scrabblatan.Scrabble.Core
+import           Scrabblatan.Scrabble.ScrabbleWord
 
 type Dictionary = Set.HashSet ScrabbleWord
 
