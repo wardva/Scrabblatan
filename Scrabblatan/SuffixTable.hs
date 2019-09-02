@@ -11,8 +11,6 @@ module Scrabblatan.SuffixTable
   , suffixEntries
   ) where
 
-import Scrabblatan.Scrabble
-
 import           Data.Text                    (isPrefixOf)
 import qualified Data.Text                    as Text
 import qualified Data.Text.IO                 as TextIO
@@ -41,7 +39,7 @@ getAndSplit v i = let (left, right) = V.tail <$> V.splitAt i v
                       item = v ! i
                    in (left, item, right)
 
-contains :: ScrabbleWord -> SuffixTable -> Bool
+contains :: Text.Text -> SuffixTable -> Bool
 contains needle table = not . null $ findContaining (Text.pack $ show needle) table
 
 findContaining :: Text.Text -> SuffixTable -> [Text.Text]

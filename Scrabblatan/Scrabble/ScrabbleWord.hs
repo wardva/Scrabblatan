@@ -74,7 +74,7 @@ characterToChar Z = 'z'
 
 newtype ScrabbleWord = ScrabbleWord [Character]
   deriving (Eq, Ord)
-  deriving newtype (Hashable, NFData)
+  deriving newtype (Hashable)
 
 wordLength :: ScrabbleWord -> Int
 wordLength (ScrabbleWord w) = length w
