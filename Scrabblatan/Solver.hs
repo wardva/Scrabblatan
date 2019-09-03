@@ -8,7 +8,7 @@ import qualified Scrabblatan.Dictionary   as Dict
 import           Scrabblatan.Scrabble
 import qualified Scrabblatan.SuffixMap    as Suff
 
-type Result = (ScrabbleWord, Position, Direction)
+type Result = (ScrabbleWord, [Position], Direction)
 
 type Discovered = Set.HashSet Result
 
@@ -29,23 +29,21 @@ expandPosition suffixTable dictionary board rack direction position = do
 
   currentCharacter <- lift (expandTile rackTile)
 
-  let additional = getRow board position (swapDirection direction) currentCharacter
+  let additional = snd $ getRow board position (swapDirection direction) currentCharacter
 
   when (wordLength additional > 1) $
     guard $ additional `Dict.contains` dictionary
 
-  let currentMove = getRow board position direction currentCharacter
-  let discovery = (currentMove, position, direction)
+  let (wordPositions, word) = getRow board position direction currentCharacter
+  let discovery = (word, wordPositions, direction)
 
   discovered <- get
 
   guard $ not (Set.member discovery discovered)
 
-  let newDiscovered = Set.insert discovery discovered
+  put $ Set.insert discovery discovered
 
-  put newDiscovered
-
-  guard $ Suff.contains currentMove suffixTable
+  guard $ Suff.contains word suffixTable
 
   let newRack = remove rack rackTile
   let newBoard = applyCharacter board position currentCharacter
@@ -53,12 +51,9 @@ expandPosition suffixTable dictionary board rack direction position = do
 
   let nextResults = lift nextFree >>= expandPosition suffixTable dictionary newBoard newRack direction
 
-  if Dict.contains currentMove dictionary && rackLength newRack <= 2
-    then addResult (currentMove, position, direction) newDiscovered nextResults
+  if Dict.contains word dictionary
+    then return (word, wordPositions, direction)
     else nextResults
 
 append :: a -> [a] -> [a]
 append a as = a:as
-
-addResult :: Result -> Discovered -> StateT Discovered [] Result -> StateT Discovered [] Result
-addResult w d = mapStateT $ \x -> (w,d) : x

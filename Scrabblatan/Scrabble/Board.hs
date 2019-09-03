@@ -77,17 +77,20 @@ hasNeighbor :: Board -> Position -> Bool
 hasNeighbor board (r,c) = let neighbors = filter (valid board) [ (r+1,c), (r-1,c), (r,c+1), (r,c-1) ]
                            in or $ isJust . getCharacter board <$> neighbors
 
-getRow :: Board -> Position -> Direction -> Character -> ScrabbleWord
-getRow board pos dir tile =
+getRow :: Board -> Position -> Direction -> Character -> ([Position], ScrabbleWord)
+getRow board pos dir c =
   let (back, forward) = movements dir
-      tilesBack = getDirection (back board) (back board pos)
-      tilesForward = getDirection (forward board) (forward board pos)
-   in ScrabbleWord (reverse tilesBack ++ tile : tilesForward)
+      wordBack = getDirection (back board) (back board pos)
+      wordForward = getDirection (forward board) (forward board pos)
+      row = (reverse wordBack ++ (pos, c) : wordForward)
+   in (fmap fst row, ScrabbleWord (snd <$> row))
 
-  where getDirection next p =
-          case p >>= getCharacter board of
-            Just t  -> t : getDirection next (p >>= next)
-            Nothing -> []
+  where getDirection :: (Position -> Maybe Position) -> Maybe Position -> [(Position, Character)]
+        getDirection next =
+          foldMap (\p -> case getCharacter board p of
+                           Just t -> (p, t) : getDirection next (next p)
+                           Nothing -> []
+                  )
 
 getNextFree :: Board -> Position -> Direction -> [Position]
 getNextFree board pos dir =
