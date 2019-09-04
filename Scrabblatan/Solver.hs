@@ -41,7 +41,9 @@ expandPosition suffixTable dictionary board rack direction position = do
 
   guard $ not (Set.member discovery discovered)
 
-  put $ Set.insert discovery discovered
+  let newDiscovered = Set.insert discovery discovered
+
+  put newDiscovered
 
   guard $ Suff.contains word suffixTable
 
@@ -52,8 +54,11 @@ expandPosition suffixTable dictionary board rack direction position = do
   let nextResults = lift nextFree >>= expandPosition suffixTable dictionary newBoard newRack direction
 
   if Dict.contains word dictionary
-    then return (word, wordPositions, direction)
+    then addResult (word, wordPositions, direction) newDiscovered nextResults
     else nextResults
+
+addResult :: Result -> Discovered -> StateT Discovered [] Result -> StateT Discovered [] Result
+addResult w d = mapStateT $ \x -> (w,d) : x
 
 append :: a -> [a] -> [a]
 append a as = a:as
